@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "cd ../.. && npm install",
+  "buildCommand": "cd ../.. && npm run typecheck && npm run build --workspace @securevoice/web",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/v1/:path*",
+      "destination": "http://3.110.55.241:8787/v1/:path*"
+    },
+    {
+      "source": "/healthz",
+      "destination": "http://3.110.55.241:8787/healthz"
+    },
+    {
+      "source": "/((?!assets/|favicon|.*\\..*).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
