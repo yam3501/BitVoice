@@ -240,14 +240,18 @@ export function createDirectCall(config: DirectCallConfig): DirectCall {
 			if (connection?.connectionState === 'connected') {
 				if (state === 'outgoing-connecting' || state === 'incoming-connecting') {
 					move('connection-established');
-					if (!finishTimeout) {
-						finishTimeout = setTimeout(() => {
-							if (state === 'ice-connected') {
-								move('connection-failed');
-							}
-						}, 10000);
+					if (!config.createChallenge) {
+						move('finish-confirmed');
+					} else {
+						if (!finishTimeout) {
+							finishTimeout = setTimeout(() => {
+								if (state === 'ice-connected') {
+									move('connection-failed');
+								}
+							}, 10000);
+						}
+						void sendChallenge();
 					}
-					void sendChallenge();
 				}
 				if (state === 'connected') {
 					startStatsPolling();
