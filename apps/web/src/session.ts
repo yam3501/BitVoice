@@ -301,19 +301,21 @@ export class SessionManager {
     this.activeSignaling = signalingInstance;
     this.activeCall = callInstance;
 
+    let dialTimeout: ReturnType<typeof setTimeout> | undefined;
     try {
-      // 15-second timeout prevents permanent stuck state at outgoing-rendezvous
       await Promise.race([
         this.activeCall.startOutgoing(),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('offer timed out after 15s — check network/rendezvous')), 15000)
-        ),
+        new Promise<never>((_, reject) => {
+          dialTimeout = setTimeout(() => reject(new Error('startOutgoing timed out after 30s (waiting for camera/microphone or TURN)')), 30000);
+        }),
       ]);
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : String(e);
       this.trace(`dial error: ${errMsg}`);
       await this.endCall(false);
       throw e;
+    } finally {
+      if (dialTimeout) clearTimeout(dialTimeout);
     }
   }
 

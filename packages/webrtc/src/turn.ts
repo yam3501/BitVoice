@@ -6,7 +6,8 @@ export function createRendezvousTurnProvider(rendezvousUrl: string, authToken: s
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${authToken}`
-      }
+      },
+      signal: AbortSignal.timeout(5000)
     });
 
     if (!res.ok) {

@@ -312,8 +312,11 @@ export function createDirectCall(config: DirectCallConfig): DirectCall {
 		get pendingOffer() { return pendingOffer ? { ...pendingOffer } : undefined; },
 		async startOutgoing() {
 			move('prepare-outgoing');
+			trace('fetching ICE/TURN servers...');
 			await prepareIceServers();
+			trace('requesting media permissions (mic/camera)...');
 			await requestMedia();
+			trace('media acquired, creating offer...');
 			const peer = ensureConnection();
 			controlChannel = peer.createDataChannel('securevoice-control', { ordered: true });
 			configureControlChannel(controlChannel);
