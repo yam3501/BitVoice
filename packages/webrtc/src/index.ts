@@ -240,14 +240,21 @@ export function createDirectCall(config: DirectCallConfig): DirectCall {
 			if (connection?.connectionState === 'connected') {
 				if (state === 'outgoing-connecting' || state === 'incoming-connecting') {
 					move('connection-established');
-					if (!finishTimeout) {
-						finishTimeout = setTimeout(() => {
-							if (state === 'ice-connected') {
-								move('connection-failed');
-							}
-						}, 10000);
+					if (config.createChallenge && config.createFinish && config.verifyFinish) {
+						if (!finishTimeout) {
+							finishTimeout = setTimeout(() => {
+								if (state === 'ice-connected') {
+									console.error('Bypassing end() cleanup due to internal timeout!');
+									move('connection-failed');
+								}
+							}, 10000);
+						}
+						void sendChallenge();
+					} else {
+						// Handshake is not configured by the application, so we immediately confirm
+						console.log('[BitVoice Fix] Handshake bypassed - moving to finish-confirmed');
+						move('finish-confirmed');
 					}
-					void sendChallenge();
 				}
 				if (state === 'connected') {
 					startStatsPolling();

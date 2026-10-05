@@ -1,5 +1,6 @@
 import { createAuthenticatedSignaling } from '@securevoice/webrtc/signaling';
 import { createDirectCall, type CallState, type DirectCall, type PrivacyMode, type MediaPreferences, type DirectCallConfig, type SignalPayload } from '@securevoice/webrtc';
+// CACHE BUSTER: 1
 import { createRendezvousTurnProvider } from '@securevoice/webrtc/turn';
 import { generateAgreementKeyPair, importAgreementPublicKey, importSigningPublicKey } from '@securevoice/crypto';
 import { ReplayGuard, encodeBase64Url } from '@securevoice/protocol';
@@ -208,7 +209,12 @@ export class SessionManager {
           if (mediaPreferences) {
             callConfig.mediaPreferences = mediaPreferences;
           }
-          await this.activeCall!.acceptIncoming();
+          try {
+            await this.activeCall!.acceptIncoming();
+          } catch (e) {
+            this.trace(`acceptIncoming error: ${e instanceof Error ? e.message : String(e)}`);
+            console.error('acceptIncoming error', e);
+          }
         },
         async () => {
           this.trace('incoming call rejected');

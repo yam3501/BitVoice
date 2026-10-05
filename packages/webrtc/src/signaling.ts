@@ -177,6 +177,9 @@ export function createAuthenticatedSignaling(config: AuthenticatedSignalingConfi
           
           if (envelope.header.type === 'call-offer' && !currentCallId) {
             currentCallId = envelope.header.callId!;
+            remoteEphemeralPublicKeyBase64 = undefined;
+            activeSessionKeys = undefined;
+            preAnswerSessionKeys = undefined;
           }
 
           const keys = await getSessionKeys(envelope.header, false);
@@ -189,11 +192,10 @@ export function createAuthenticatedSignaling(config: AuthenticatedSignalingConfi
           await onPayload({ signal: payload.signal, privacyMode: payload.privacyMode }, payload.callId);
           acks.push(config.rendezvous.ack(config.mailboxId, message.messageId));
         } catch (error: unknown) {
-          if ((error as Error)?.name === 'ReplayError') {
-            acks.push(config.rendezvous.ack(config.mailboxId, message.messageId).catch(() => {}));
-            continue;
+          if ((error as Error)?.name !== 'ReplayError') {
+            console.warn('Failed to process rendezvous message (ignoring):', error);
           }
-          throw error;
+          acks.push(config.rendezvous.ack(config.mailboxId, message.messageId).catch(() => {}));
         }
       }
       await Promise.all(acks);
